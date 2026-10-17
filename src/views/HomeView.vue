@@ -329,7 +329,7 @@ watch(selectedLocation, (newLocation) => {
       id="sidebar"
       :class="[
         'fixed md:static z-50 transition-all duration-300 ease-in-out flex flex-col',
-        'w-full md:w-96 lg:w-[380px]',
+        'w-full md:w-96 lg:w-95',
         'bg-white dark:bg-neutral-800',
         'border-t md:border-t-0 md:border-r border-neutral-200 dark:border-neutral-700',
         'shadow-2xl md:shadow-lg',
@@ -352,7 +352,21 @@ watch(selectedLocation, (newLocation) => {
             <ApplicationLogo />
           </div>
 
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5">
+            <router-link
+              to="/"
+              class="p-2 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition"
+              title="Ke Landing Page"
+            >
+              <i class="fas fa-home text-sm"></i>
+            </router-link>
+            <router-link
+              to="/docs"
+              class="p-2 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition"
+              title="Dokumentasi Sistem"
+            >
+              <i class="fas fa-book-open text-sm"></i>
+            </router-link>
             <!-- Mobile close button -->
             <button
               v-if="isMobile"
@@ -382,17 +396,17 @@ watch(selectedLocation, (newLocation) => {
           </div>
 
           <!-- Quick Submission Card -->
-          <div class="p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-100/50 dark:from-neutral-800 dark:to-neutral-700 border border-primary/30">
+          <div class="p-5 rounded-2xl bg-linear-to-br from-amber-50 to-yellow-100/50 dark:from-neutral-800 dark:to-neutral-700 border border-primary/30">
             <div class="flex items-start gap-3.5">
               <div class="w-10 h-10 rounded-xl bg-primary text-neutral-900 flex items-center justify-center shrink-0 shadow-sm">
                 <i class="fas fa-location-arrow text-lg"></i>
               </div>
               <div class="flex-1 min-w-0">
                 <h4 class="text-sm font-bold text-neutral-900 dark:text-white mb-1">
-                  Punya Lokasi Magang Baru? ayo hubungi admin melalui email untuk pengajuan tempat magang
+                  Magang di Tempat yang Belum Ada di Peta?
                 </h4>
                 <p class="text-xs text-neutral-600 dark:text-neutral-300 mb-3">
-                  Bantu rekan mahasiswa lain dengan mengajukan titik tempat magang Anda.
+                  Kabari admin lewat email dan jadikan instansi tempatmu magang sebagai referensi buat adik tingkat selanjutnya.
                 </p>
               </div>
             </div>
@@ -405,7 +419,7 @@ watch(selectedLocation, (newLocation) => {
             </h4>
             <div class="space-y-2.5">
               <div
-                v-for="loc in filteredLocations.slice(0, 10)"
+                v-for="loc in filteredLocations.slice(0, 5)"
                 :key="loc.id_location"
                 @click="selectLocation(loc)"
                 class="p-3 rounded-xl border border-neutral-100 dark:border-neutral-700 hover:border-primary/50 bg-white dark:bg-neutral-800/80 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 cursor-pointer transition flex items-center gap-3 shadow-xs"
@@ -636,7 +650,7 @@ watch(selectedLocation, (newLocation) => {
         <template v-if="authStore.isAuthenticated">
           <router-link
             :to="authStore.user?.role === 'admin' ? '/admin/dashboard' : '/user/dashboard'"
-            class="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 flex items-center gap-1.5 transition truncate max-w-[170px]"
+            class="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 flex items-center gap-1.5 transition truncate max-w-42.5"
           >
             <i class="fas" :class="authStore.user?.role === 'admin' ? 'fa-chart-pie' : 'fa-user-graduate'"></i>
             <span class="truncate">{{ authStore.user?.role === 'admin' ? 'Admin Dashboard' : 'Dashboard Saya' }}</span>

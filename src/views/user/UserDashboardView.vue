@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import AuthenticatedLayout from '../../layouts/AuthenticatedLayout.vue'
 import Modal from '../../components/Modal.vue'
 import DangerButton from '../../components/DangerButton.vue'
@@ -45,6 +45,46 @@ const form = ref({
   existingFileSize: 0
 })
 const fileError = ref('')
+
+// Searchable Location Selector State
+const locationSearchQuery = ref('')
+const isLocationDropdownOpen = ref(false)
+const locationSelectorRef = ref(null)
+
+const selectedLocationObj = computed(() => {
+  if (!form.value.id_location) return null
+  return locations.value.find(loc => loc.id_location === parseInt(form.value.id_location)) || null
+})
+
+const filteredLocationsList = computed(() => {
+  const q = locationSearchQuery.value.trim().toLowerCase()
+  if (!q) return locations.value
+  return locations.value.filter(loc => {
+    const nameMatch = loc.name_location?.toLowerCase().includes(q)
+    const catMatch = loc.category?.name_category?.toLowerCase().includes(q)
+    const deptMatch = loc.department?.name_department?.toLowerCase().includes(q)
+    const descMatch = loc.description?.toLowerCase().includes(q)
+    return nameMatch || catMatch || deptMatch || descMatch
+  })
+})
+
+const selectLocationItem = (loc) => {
+  form.value.id_location = loc.id_location
+  locationSearchQuery.value = ''
+  isLocationDropdownOpen.value = false
+}
+
+const clearSelectedLocation = () => {
+  form.value.id_location = ''
+  locationSearchQuery.value = ''
+  isLocationDropdownOpen.value = true
+}
+
+const handleDocumentClick = (e) => {
+  if (locationSelectorRef.value && !locationSelectorRef.value.contains(e.target)) {
+    isLocationDropdownOpen.value = false
+  }
+}
 
 // Fetch reports & locations
 const fetchData = async () => {
@@ -167,6 +207,8 @@ const openUploadModal = () => {
     existingFileSize: 0
   }
   fileError.value = ''
+  locationSearchQuery.value = ''
+  isLocationDropdownOpen.value = false
   showModal.value = true
 }
 
@@ -207,6 +249,8 @@ const openEditModal = (report) => {
     existingFileSize: report.file_size || 0
   }
   fileError.value = ''
+  locationSearchQuery.value = ''
+  isLocationDropdownOpen.value = false
   showModal.value = true
 }
 
@@ -302,6 +346,11 @@ const deleteReport = async () => {
 
 onMounted(() => {
   fetchData()
+  document.addEventListener('click', handleDocumentClick)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick)
 })
 </script>
 
@@ -329,7 +378,7 @@ onMounted(() => {
           <button
             v-if="!hasReport"
             @click="openUploadModal"
-            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-neutral-900 shadow-md shadow-amber-500/10 hover:shadow-lg transition-all duration-200 cursor-pointer"
+            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-neutral-900 shadow-md shadow-amber-500/10 hover:shadow-lg transition-all duration-200 cursor-pointer"
           >
             <i class="fas fa-file-arrow-up text-base"></i>
             <span>Unggah Laporan Magang</span>
@@ -339,7 +388,7 @@ onMounted(() => {
           <button
             v-else-if="myReport && myReport.status !== 'approved'"
             @click="openEditModal(myReport)"
-            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-neutral-900 shadow-md shadow-amber-500/10 hover:shadow-lg transition-all duration-200 cursor-pointer"
+            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-linear-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-neutral-900 shadow-md shadow-amber-500/10 hover:shadow-lg transition-all duration-200 cursor-pointer"
           >
             <i class="fas fa-pen-to-square text-base"></i>
             <span>Perbarui / Revisi Laporan</span>
@@ -396,7 +445,7 @@ onMounted(() => {
       <!-- ================= TAB 1: LAPORAN SAYA ================= -->
       <div v-else-if="activeTab === 'my_report'" class="space-y-6">
         <!-- Info Ketentuan Laporan -->
-        <div class="bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border-l-4 border-amber-500 dark:border-amber-400 p-4 rounded-r-2xl flex items-start gap-3.5">
+        <div class="bg-linear-to-r from-amber-500/10 via-amber-400/5 to-transparent border-l-4 border-amber-500 dark:border-amber-400 p-4 rounded-r-2xl flex items-start gap-3.5">
           <i class="fas fa-circle-info text-amber-600 dark:text-amber-400 text-lg mt-0.5 shrink-0"></i>
           <div class="text-xs sm:text-sm text-neutral-700 dark:text-neutral-300">
             <p class="font-bold text-neutral-900 dark:text-white">Ketentuan 1 Mahasiswa 1 Laporan Magang:</p>
@@ -623,7 +672,7 @@ onMounted(() => {
       <!-- ================= TAB 2: KATALOG REFERENSI LAPORAN (DISETUJUI) ================= -->
       <div v-else-if="activeTab === 'catalog'" class="space-y-6">
         <!-- Banner Katalog -->
-        <div class="p-6 rounded-3xl bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent border border-primary/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="p-6 rounded-3xl bg-linear-to-br from-amber-500/10 via-yellow-500/5 to-transparent border border-primary/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="space-y-1">
             <h3 class="text-base sm:text-lg font-black text-neutral-900 dark:text-white flex items-center gap-2">
               <i class="fas fa-book-bookmark text-amber-500"></i>
@@ -743,190 +792,291 @@ onMounted(() => {
 
     <!-- Modal Form (Upload Baru atau Perbarui / Revisi) -->
     <Modal :show="showModal" @close="showModal = false" max-width="2xl">
-      <div class="p-6">
-        <div class="flex items-center justify-between pb-4 border-b border-neutral-100 dark:border-neutral-700 mb-5">
+      <div class="flex flex-col max-h-[90vh]">
+        <!-- Sticky Modal Header -->
+        <div class="px-6 py-4 border-b border-neutral-100 dark:border-neutral-700 flex items-center justify-between shrink-0 bg-white dark:bg-neutral-800">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">
               <i :class="isEditMode ? 'fas fa-pen-to-square' : 'fas fa-file-arrow-up'"></i>
             </div>
             <div>
-              <h2 class="text-lg font-extrabold text-neutral-900 dark:text-white">
+              <h2 class="text-base sm:text-lg font-extrabold text-neutral-900 dark:text-white leading-tight">
                 {{ isEditMode ? 'Perbarui / Revisi Laporan Magang' : 'Unggah Laporan Magang' }}
               </h2>
-              <p class="text-xs text-neutral-500 dark:text-neutral-400">
+              <p class="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                 {{ isEditMode ? 'Perbarui data atau unggah dokumen PDF perbaikan untuk diverifikasi ulang' : 'Pilih tempat magang dan unggah dokumen PDF resmi' }}
               </p>
             </div>
           </div>
           <button
+            type="button"
             @click="showModal = false"
-            class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 p-1 rounded-lg"
+            class="w-9 h-9 rounded-xl text-neutral-400 hover:text-neutral-700 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-center transition cursor-pointer shrink-0"
+            title="Tutup Modal"
           >
             <i class="fas fa-xmark text-lg"></i>
           </button>
         </div>
 
-        <form @submit.prevent="submitForm" class="space-y-4 text-xs sm:text-sm">
-          <!-- Step 1: Tempat Magang -->
-          <div>
-            <label class="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
-              1. Pilih Tempat Magang <span class="text-red-500">*</span>
-            </label>
-            <select
-              v-model="form.id_location"
-              required
-              class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
-            >
-              <option value="" disabled>-- Pilih instansi / tempat Anda magang --</option>
-              <option
-                v-for="loc in locations"
-                :key="loc.id_location"
-                :value="loc.id_location"
-              >
-                {{ loc.name_location }} ({{ loc.category?.name_category || 'Umum' }})
-              </option>
-            </select>
-          </div>
-
-          <!-- Step 2: Judul Laporan -->
-          <div>
-            <label class="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
-              2. Judul Laporan Magang <span class="text-red-500">*</span>
-            </label>
-            <input
-              v-model="form.title"
-              type="text"
-              required
-              placeholder="Contoh: Laporan Akhir Praktik Kerja Lapangan Divisi IT PT Telkom"
-              class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
-            />
-          </div>
-
-          <!-- Step 3: Mahasiswa & NIM (Wajib Nama Paling Atas) -->
-          <div class="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-700 space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
-                  3. Mahasiswa Penyusun Laporan (Wajib Sesuai PDF) <span class="text-red-500">*</span>
+        <!-- Form with scrollable body -->
+        <form @submit.prevent="submitForm" class="flex flex-col flex-1 min-h-0">
+          <div class="px-6 py-5 space-y-4 overflow-y-auto flex-1 text-xs sm:text-sm">
+            <!-- Step 1: Searchable Tempat Magang -->
+            <div ref="locationSelectorRef" class="space-y-1.5 relative">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+                  1. Pilih Tempat Magang <span class="text-red-500">*</span>
                 </label>
-                <p class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-                  Wajib mencantumkan nama mahasiswa paling atas beserta NIM-nya persis dari PDF laporan.
-                </p>
+                <span v-if="!selectedLocationObj" class="text-[11px] text-neutral-400">
+                  Tersedia {{ locations.length }} tempat magang
+                </span>
               </div>
-              <button
-                type="button"
-                @click="addStudentRow"
-                class="px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/40 rounded-lg hover:bg-amber-200 transition cursor-pointer shrink-0"
-              >
-                <i class="fas fa-plus mr-1"></i> Tambah Anggota
-              </button>
-            </div>
 
-            <!-- Student inputs list -->
-            <div class="space-y-2 mt-2">
+              <!-- State 1: Tempat magang terpilih (Card Tampilan Terpilih) -->
               <div
-                v-for="(student, idx) in form.studentsList"
-                :key="idx"
-                class="flex items-center gap-2"
+                v-if="selectedLocationObj"
+                class="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border-2 border-primary/60 dark:border-primary/40 flex items-center justify-between gap-3 shadow-2xs"
               >
-                <div class="w-6 text-center text-xs font-bold text-neutral-400 shrink-0">
-                  {{ idx + 1 }}.
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-xl bg-primary text-neutral-900 flex items-center justify-center font-bold shrink-0 shadow-xs">
+                    <i class="fas fa-building text-sm"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <h4 class="text-xs sm:text-sm font-extrabold text-neutral-900 dark:text-white truncate">
+                        {{ selectedLocationObj.name_location }}
+                      </h4>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200/80 text-amber-900 dark:bg-amber-900/60 dark:text-amber-200">
+                        {{ selectedLocationObj.category?.name_category || 'Umum' }}
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5 flex items-center gap-1">
+                      <i class="fas fa-location-dot text-amber-500 text-[10px]"></i>
+                      <span class="truncate">{{ selectedLocationObj.description || 'Lokasi PKL Terverifikasi' }}</span>
+                    </p>
+                  </div>
                 </div>
-                <input
-                  v-model="student.name"
-                  type="text"
-                  required
-                  :placeholder="idx === 0 ? 'Nama Mahasiswa Paling Atas (Ketua)' : 'Nama Anggota'"
-                  class="flex-1 px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/60"
-                />
-                <input
-                  v-model="student.nim"
-                  type="text"
-                  required
-                  placeholder="NIM"
-                  class="w-28 sm:w-36 px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/60"
-                />
+
                 <button
-                  v-if="form.studentsList.length > 1"
                   type="button"
-                  @click="removeStudentRow(idx)"
-                  class="p-2 text-neutral-400 hover:text-red-500 transition cursor-pointer"
-                  title="Hapus baris"
+                  @click="clearSelectedLocation"
+                  class="px-3 py-1.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-xs font-bold text-neutral-700 dark:text-neutral-200 shrink-0 transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  title="Cari tempat magang lain"
                 >
-                  <i class="fas fa-trash-can text-xs"></i>
+                  <i class="fas fa-magnifying-glass text-[11px] text-amber-600"></i>
+                  <span>Ganti / Cari</span>
                 </button>
               </div>
-            </div>
-          </div>
 
-          <!-- Step 4: Ringkasan / Keterangan -->
-          <div>
-            <label class="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
-              4. Ringkasan / Catatan Laporan (Opsional)
-            </label>
-            <textarea
-              v-model="form.description"
-              rows="2"
-              placeholder="Tuliskan ringkasan singkat kegiatan atau topik laporan magang..."
-              class="w-full px-3.5 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
-            ></textarea>
-          </div>
-
-          <!-- Step 5: Dokumen PDF Laporan -->
-          <div>
-            <label class="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
-              5. Dokumen Laporan Magang (Format PDF)
-              <span v-if="!isEditMode" class="text-red-500">*</span>
-              <span v-else class="text-neutral-400 font-normal">(Opsional jika tidak mengganti berkas PDF)</span>
-            </label>
-
-            <!-- Tampilkan info file lama jika dalam mode edit -->
-            <div v-if="isEditMode && form.existingFileName && !form.fileName" class="mb-2 p-2.5 rounded-xl bg-neutral-100 dark:bg-neutral-700/60 flex items-center justify-between text-xs">
-              <div class="flex items-center gap-2 truncate">
-                <i class="fas fa-file-pdf text-red-500 text-sm"></i>
-                <span class="truncate font-semibold text-neutral-800 dark:text-neutral-200">Berkas saat ini: {{ form.existingFileName }}</span>
-                <span class="text-neutral-400">({{ formatFileSize(form.existingFileSize) }})</span>
-              </div>
-              <span class="text-[11px] text-amber-600 dark:text-amber-400 font-bold shrink-0">Tetap digunakan</span>
-            </div>
-
-            <div class="border-2 border-dashed border-neutral-300 dark:border-neutral-600 hover:border-amber-400 dark:hover:border-amber-400 rounded-2xl p-5 text-center transition bg-neutral-50/50 dark:bg-neutral-900/30 relative">
-              <input
-                type="file"
-                accept=".pdf,application/pdf"
-                :required="!isEditMode && !form.existingFileName"
-                @change="handleFileChange"
-                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <div v-if="!form.fileName">
-                <i class="fas fa-file-pdf text-3xl text-red-500 mb-2"></i>
-                <p class="text-xs font-bold text-neutral-800 dark:text-neutral-200">
-                  {{ isEditMode ? 'Klik atau seret file PDF baru jika ingin mengganti berkas laporan' : 'Klik atau seret file PDF laporan ke sini' }}
-                </p>
-                <p class="text-[11px] text-neutral-400 mt-0.5">Maksimal ukuran file 25 MB (.pdf)</p>
-              </div>
-              <div v-else class="flex items-center justify-center gap-3">
-                <i class="fas fa-file-pdf text-2xl text-red-500"></i>
-                <div class="text-left">
-                  <p class="text-xs font-bold text-neutral-900 dark:text-white truncate max-w-[280px]">
-                    {{ form.fileName }}
-                  </p>
-                  <p class="text-[11px] text-neutral-400">{{ formatFileSize(form.fileSize) }} (Berkas Baru)</p>
+              <!-- State 2: Search Input & Autocomplete Dropdown -->
+              <div v-else class="relative">
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+                    <i class="fas fa-magnifying-glass text-xs"></i>
+                  </div>
+                  <input
+                    v-model="locationSearchQuery"
+                    @focus="isLocationDropdownOpen = true"
+                    type="text"
+                    placeholder="Ketik untuk mencari tempat magang (contoh: Telkom, Pertamina, Bank, Software)..."
+                    class="w-full pl-9 pr-8 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-xs sm:text-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/70 transition"
+                  />
+                  <button
+                    v-if="locationSearchQuery"
+                    @click="locationSearchQuery = ''"
+                    type="button"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                  >
+                    <i class="fas fa-xmark text-xs"></i>
+                  </button>
                 </div>
-                <span class="text-xs text-amber-600 dark:text-amber-400 font-semibold underline ml-2">Ganti File</span>
+
+                <!-- Dropdown List -->
+                <div
+                  v-if="isLocationDropdownOpen"
+                  class="absolute z-30 left-0 right-0 mt-1.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-2xl max-h-56 overflow-y-auto"
+                >
+                  <div class="p-2.5 border-b border-neutral-100 dark:border-neutral-700/60 text-[11px] font-semibold text-neutral-400 flex items-center justify-between">
+                    <span>{{ filteredLocationsList.length }} tempat ditemukan</span>
+                    <span v-if="locationSearchQuery" class="text-amber-600 font-bold">Filter aktif</span>
+                  </div>
+
+                  <div v-if="filteredLocationsList.length > 0">
+                    <button
+                      v-for="loc in filteredLocationsList"
+                      :key="loc.id_location"
+                      type="button"
+                      @click="selectLocationItem(loc)"
+                      class="w-full text-left p-3 hover:bg-amber-50/70 dark:hover:bg-neutral-700/60 border-b border-neutral-100 dark:border-neutral-700/40 last:border-b-0 transition flex items-start gap-3 cursor-pointer group"
+                    >
+                      <div class="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-700 group-hover:bg-primary text-neutral-600 group-hover:text-neutral-900 flex items-center justify-center text-xs shrink-0 transition">
+                        <i class="fas fa-building"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                          <p class="text-xs font-bold text-neutral-900 dark:text-white truncate group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">
+                            {{ loc.name_location }}
+                          </p>
+                          <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 shrink-0">
+                            {{ loc.category?.name_category || 'Umum' }}
+                          </span>
+                        </div>
+                        <p class="text-[11px] text-neutral-400 truncate mt-0.5">
+                          <span v-if="loc.department" class="mr-1.5 text-neutral-500 font-medium">[{{ loc.department.name_department }}]</span>
+                          {{ loc.description || 'Tidak ada deskripsi' }}
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+
+                  <div v-else class="p-6 text-center text-xs text-neutral-400">
+                    <i class="fas fa-building-circle-xmark text-2xl mb-1.5 text-neutral-300 dark:text-neutral-600 block"></i>
+                    <span>Tidak ada tempat magang dengan kata kunci "{{ locationSearchQuery }}".</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <p v-if="fileError" class="text-xs text-red-500 mt-1 font-medium">{{ fileError }}</p>
+
+            <!-- Step 2: Judul Laporan -->
+            <div>
+              <label class="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
+                2. Judul Laporan Magang <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="form.title"
+                type="text"
+                required
+                placeholder="Contoh: Laporan Akhir Praktik Kerja Lapangan Divisi IT PT Telkom"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
+              />
+            </div>
+
+            <!-- Step 3: Mahasiswa & NIM (Wajib Nama Paling Atas) -->
+            <div class="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-700 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="block text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
+                    3. Mahasiswa Penyusun Laporan (Wajib Sesuai PDF) <span class="text-red-500">*</span>
+                  </label>
+                  <p class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    Wajib mencantumkan nama mahasiswa paling atas beserta NIM-nya persis dari PDF laporan.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  @click="addStudentRow"
+                  class="px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/40 rounded-lg hover:bg-amber-200 transition cursor-pointer shrink-0"
+                >
+                  <i class="fas fa-plus mr-1"></i> Tambah Anggota
+                </button>
+              </div>
+
+              <!-- Student inputs list -->
+              <div class="space-y-2 mt-2">
+                <div
+                  v-for="(student, idx) in form.studentsList"
+                  :key="idx"
+                  class="flex items-center gap-2"
+                >
+                  <div class="w-6 text-center text-xs font-bold text-neutral-400 shrink-0">
+                    {{ idx + 1 }}.
+                  </div>
+                  <input
+                    v-model="student.name"
+                    type="text"
+                    required
+                    :placeholder="idx === 0 ? 'Nama Mahasiswa Paling Atas (Ketua)' : 'Nama Anggota'"
+                    class="flex-1 px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/60"
+                  />
+                  <input
+                    v-model="student.nim"
+                    type="text"
+                    required
+                    placeholder="NIM"
+                    class="w-28 sm:w-36 px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/60"
+                  />
+                  <button
+                    v-if="form.studentsList.length > 1"
+                    type="button"
+                    @click="removeStudentRow(idx)"
+                    class="p-2 text-neutral-400 hover:text-red-500 transition cursor-pointer"
+                    title="Hapus baris"
+                  >
+                    <i class="fas fa-trash-can text-xs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4: Ringkasan / Keterangan -->
+            <div>
+              <label class="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
+                4. Ringkasan / Catatan Laporan (Opsional)
+              </label>
+              <textarea
+                v-model="form.description"
+                rows="2"
+                placeholder="Tuliskan ringkasan singkat kegiatan atau topik laporan magang..."
+                class="w-full px-3.5 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
+              ></textarea>
+            </div>
+
+            <!-- Step 5: Dokumen PDF Laporan -->
+            <div>
+              <label class="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
+                5. Dokumen Laporan Magang (Format PDF)
+                <span v-if="!isEditMode" class="text-red-500">*</span>
+                <span v-else class="text-neutral-400 font-normal">(Opsional jika tidak mengganti berkas PDF)</span>
+              </label>
+
+              <!-- Tampilkan info file lama jika dalam mode edit -->
+              <div v-if="isEditMode && form.existingFileName && !form.fileName" class="mb-2 p-2.5 rounded-xl bg-neutral-100 dark:bg-neutral-700/60 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2 truncate">
+                  <i class="fas fa-file-pdf text-red-500 text-sm"></i>
+                  <span class="truncate font-semibold text-neutral-800 dark:text-neutral-200">Berkas saat ini: {{ form.existingFileName }}</span>
+                  <span class="text-neutral-400">({{ formatFileSize(form.existingFileSize) }})</span>
+                </div>
+                <span class="text-[11px] text-amber-600 dark:text-amber-400 font-bold shrink-0">Tetap digunakan</span>
+              </div>
+
+              <div class="border-2 border-dashed border-neutral-300 dark:border-neutral-600 hover:border-amber-400 dark:hover:border-amber-400 rounded-2xl p-5 text-center transition bg-neutral-50/50 dark:bg-neutral-900/30 relative">
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  :required="!isEditMode && !form.existingFileName"
+                  @change="handleFileChange"
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div v-if="!form.fileName">
+                  <i class="fas fa-file-pdf text-3xl text-red-500 mb-2"></i>
+                  <p class="text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                    {{ isEditMode ? 'Klik atau seret file PDF baru jika ingin mengganti berkas laporan' : 'Klik atau seret file PDF laporan ke sini' }}
+                  </p>
+                  <p class="text-[11px] text-neutral-400 mt-0.5">Maksimal ukuran file 25 MB (.pdf)</p>
+                </div>
+                <div v-else class="flex items-center justify-center gap-3">
+                  <i class="fas fa-file-pdf text-2xl text-red-500"></i>
+                  <div class="text-left">
+                    <p class="text-xs font-bold text-neutral-900 dark:text-white truncate max-w-70">
+                      {{ form.fileName }}
+                    </p>
+                    <p class="text-[11px] text-neutral-400">{{ formatFileSize(form.fileSize) }} (Berkas Baru)</p>
+                  </div>
+                  <span class="text-xs text-amber-600 dark:text-amber-400 font-semibold underline ml-2">Ganti File</span>
+                </div>
+              </div>
+              <p v-if="fileError" class="text-xs text-red-500 mt-1 font-medium">{{ fileError }}</p>
+            </div>
+
+            <!-- Notice Revisi -->
+            <div v-if="isEditMode" class="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
+              <i class="fas fa-triangle-exclamation text-amber-500 shrink-0"></i>
+              <span>Menyimpan perbaikan revisi akan mengajukan ulang status laporan ke <b>Menunggu Verifikasi Admin</b>.</span>
+            </div>
           </div>
 
-          <!-- Notice Revisi -->
-          <div v-if="isEditMode" class="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
-            <i class="fas fa-triangle-exclamation text-amber-500 shrink-0"></i>
-            <span>Menyimpan perbaikan revisi akan mengajukan ulang status laporan ke <b>Menunggu Verifikasi Admin</b>.</span>
-          </div>
-
-          <!-- Modal Action Buttons -->
-          <div class="pt-3 border-t border-neutral-100 dark:border-neutral-700 flex items-center justify-end gap-3">
+          <!-- Sticky Modal Action Buttons Footer -->
+          <div class="px-6 py-4 border-t border-neutral-100 dark:border-neutral-700 bg-neutral-50/60 dark:bg-neutral-800/80 flex items-center justify-end gap-3 shrink-0">
             <SecondaryButton @click="showModal = false" type="button" :disabled="submitting">
               Batal
             </SecondaryButton>

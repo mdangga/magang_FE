@@ -47,7 +47,7 @@ const handleLogin = async () => {
   <div class="min-h-screen bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center p-4 font-sans transition-colors">
     <div class="max-w-md w-full bg-white dark:bg-neutral-800 rounded-3xl shadow-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
       <!-- Card Header -->
-      <div class="p-8 pb-6 bg-gradient-to-br from-amber-400 via-primary to-yellow-500 text-neutral-900 text-center relative overflow-hidden">
+      <div class="p-8 pb-6 bg-linear-to-br from-amber-400 via-primary to-yellow-500 text-neutral-900 text-center relative overflow-hidden">
         <div class="w-16 h-16 bg-white/30 rounded-2xl mx-auto flex items-center justify-center mb-4 backdrop-blur-xs shadow-inner">
           <i class="fas fa-right-to-bracket text-2xl text-neutral-900"></i>
         </div>
@@ -123,7 +123,7 @@ const handleLogin = async () => {
           </p>
           <div>
             <router-link to="/" class="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors inline-flex items-center gap-1.5">
-              <i class="fas fa-arrow-left"></i> Kembali ke Beranda Peta
+              <i class="fas fa-arrow-left"></i> Kembali ke Beranda
             </router-link>
           </div>
         </div>

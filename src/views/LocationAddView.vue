@@ -14,8 +14,10 @@ import ImageUpload from '../components/ImageUpload.vue'
 import ApplicationLogo from '../components/ApplicationLogo.vue'
 import DarkModeToggle from '../components/DarkModeToggle.vue'
 import api from '../api'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const categories = ref([])
 const faculties = ref([])
 const selectedFaculty = ref('')
@@ -74,7 +76,7 @@ const fetchData = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   const saved = localStorage.getItem('theme')
   if (saved) {
     darkMode.value = saved === 'dark'
@@ -82,6 +84,16 @@ onMounted(() => {
     darkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
   }
   applyDarkMode()
+
+  // Auto-fill student info from logged-in user
+  let currentUser = authStore.user
+  if (!currentUser && authStore.token) {
+    currentUser = await authStore.fetchUser()
+  }
+  if (currentUser) {
+    form.value.student_name = currentUser.name || ''
+    form.value.nim = currentUser.username || ''
+  }
 
   fetchData()
 })
@@ -131,10 +143,10 @@ const submit = async () => {
 
     toast.success(res.data?.message || 'Permintaan lokasi magang berhasil diajukan!')
 
-    // Reset form
+    // Reset form (keep student info from auth)
     form.value = {
-      student_name: '',
-      nim: '',
+      student_name: authStore.user?.name || '',
+      nim: authStore.user?.username || '',
       name_location: '',
       description: '',
       contact: '',
@@ -153,7 +165,8 @@ const submit = async () => {
     }, 1500)
   } catch (err) {
     console.error('Error submitting location:', err)
-    toast.error(err.response?.data?.message || 'Gagal mengirim pengajuan lokasi.')
+    const errMsg = err.response?.data?.message || 'Gagal mengirim pengajuan lokasi. Silakan coba lagi.'
+    toast.error(errMsg)
   } finally {
     form.value.processing = false
   }
@@ -209,25 +222,43 @@ const submit = async () => {
           <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Nama -->
             <div>
-              <InputLabel for="student_name" value="Nama Lengkap Mahasiswa *" />
-              <TextInput
-                id="student_name"
-                v-model="form.student_name"
-                required
-                placeholder="Contoh: Angga Murdika"
-              />
+              <InputLabel for="student_name" value="Nama Lengkap Mahasiswa" />
+              <div class="relative">
+                <TextInput
+                  id="student_name"
+                  v-model="form.student_name"
+                  disabled
+                  placeholder="Terisi otomatis dari akun Anda"
+                />
+                <span class="absolute inset-y-0 right-3 flex items-center text-neutral-400 pointer-events-none">
+                  <i class="fas fa-lock text-xs"></i>
+                </span>
+              </div>
+              <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500 flex items-center gap-1">
+                <i class="fas fa-circle-info text-[10px]"></i>
+                Terisi otomatis sesuai akun login Anda
+              </p>
               <InputError :message="form.errors.student_name" />
             </div>
 
             <!-- NIM -->
             <div>
-              <InputLabel for="nim" value="NIM *" />
-              <TextInput
-                id="nim"
-                v-model="form.nim"
-                required
-                placeholder="Contoh: 2315101001"
-              />
+              <InputLabel for="nim" value="NIM" />
+              <div class="relative">
+                <TextInput
+                  id="nim"
+                  v-model="form.nim"
+                  disabled
+                  placeholder="Terisi otomatis dari akun Anda"
+                />
+                <span class="absolute inset-y-0 right-3 flex items-center text-neutral-400 pointer-events-none">
+                  <i class="fas fa-lock text-xs"></i>
+                </span>
+              </div>
+              <p class="mt-1 text-xs text-neutral-400 dark:text-neutral-500 flex items-center gap-1">
+                <i class="fas fa-circle-info text-[10px]"></i>
+                Terisi otomatis sesuai akun login Anda
+              </p>
               <InputError :message="form.errors.nim" />
             </div>
 

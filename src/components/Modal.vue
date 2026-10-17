@@ -76,7 +76,7 @@ const maxWidthClass = computed(() => {
     >
       <div
         v-if="show"
-        class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0 flex items-center justify-center"
+        class="fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6"
       >
         <!-- Backdrop -->
         <div
@@ -84,12 +84,15 @@ const maxWidthClass = computed(() => {
           @click="close"
         ></div>
 
-        <!-- Dialog Box -->
-        <div
-          class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 shadow-2xl transition-all sm:w-full z-10 p-6 border border-neutral-100 dark:border-neutral-700"
-          :class="maxWidthClass"
-        >
-          <slot v-if="showSlot" />
+        <!-- Center or top alignment based on content height -->
+        <div class="flex min-h-full items-start sm:items-center justify-center">
+          <!-- Dialog Box -->
+          <div
+            class="relative transform rounded-2xl bg-white dark:bg-neutral-800 shadow-2xl transition-all w-full z-10 border border-neutral-100 dark:border-neutral-700 my-auto overflow-hidden"
+            :class="maxWidthClass"
+          >
+            <slot v-if="showSlot" />
+          </div>
         </div>
       </div>
     </Transition>

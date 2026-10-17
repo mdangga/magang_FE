@@ -102,7 +102,7 @@ const formatFileSize = (bytes) => {
               class="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-xl border border-neutral-200 dark:border-neutral-600"
             >
               <div class="flex items-center gap-2.5 min-w-0">
-                <i class="fas fa-file-image text-amber-500 text-lg flex-shrink-0"></i>
+                <i class="fas fa-file-image text-amber-500 text-lg shrink-0"></i>
                 <div class="min-w-0">
                   <p class="text-sm font-medium text-neutral-800 dark:text-neutral-200 truncate">
                     {{ file.name }}
@@ -115,7 +115,7 @@ const formatFileSize = (bytes) => {
               <button
                 type="button"
                 @click="removeFile(index)"
-                class="p-1.5 text-neutral-400 hover:text-red-500 transition-colors flex-shrink-0"
+                class="p-1.5 text-neutral-400 hover:text-red-500 transition-colors shrink-0"
                 title="Hapus foto"
               >
                 <i class="fas fa-trash-can text-sm"></i>

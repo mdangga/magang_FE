@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import LandingPageView from '../views/LandingPageView.vue'
+import DocumentationView from '../views/DocumentationView.vue'
 import HomeView from '../views/HomeView.vue'
 import LocationAddView from '../views/LocationAddView.vue'
 import LoginView from '../views/LoginView.vue'
@@ -28,9 +30,33 @@ const routes = [
   // Public Routes
   {
     path: '/',
-    name: 'home',
+    name: 'landing',
+    component: LandingPageView,
+    meta: { title: 'Titik Magang - Platform GIS Pemetaan Tempat Magang' }
+  },
+  {
+    path: '/landing',
+    redirect: '/'
+  },
+  {
+    path: '/map',
+    name: 'map',
     component: HomeView,
-    meta: { title: 'Beranda - Peta Magang' }
+    meta: { title: 'Peta Interaktif - Titik Magang' }
+  },
+  {
+    path: '/peta',
+    redirect: '/map'
+  },
+  {
+    path: '/docs',
+    name: 'documentation',
+    component: DocumentationView,
+    meta: { title: 'Dokumentasi Sistem - Titik Magang' }
+  },
+  {
+    path: '/documentation',
+    redirect: '/docs'
   },
   {
     path: '/login',

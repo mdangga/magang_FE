@@ -10,7 +10,7 @@ const profileStore = useProfileStore()
       v-if="profileStore.logoUrl" 
       :src="profileStore.logoUrl" 
       :alt="profileStore.profile.app_name || 'Logo'" 
-      class="h-9 w-auto max-w-[120px] object-contain rounded"
+      class="h-9 w-auto max-w-30 object-contain rounded"
     />
     <div 
       v-else 

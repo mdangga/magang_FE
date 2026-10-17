@@ -99,7 +99,7 @@ onMounted(async () => {
               <NavLink to="/user/dashboard">
                 <i class="fas fa-file-lines mr-1.5 text-xs"></i> Laporan Magang Saya
               </NavLink>
-              <NavLink to="/">
+              <NavLink to="/map">
                 <i class="fas fa-map-marked-alt mr-1.5 text-xs"></i> Peta Lokasi
               </NavLink>
               <NavLink to="/locations/add">
@@ -109,16 +109,24 @@ onMounted(async () => {
           </div>
 
           <!-- Right side: Dark Mode & User Profile -->
-          <div class="hidden md:flex items-center gap-4">
+          <div class="hidden md:flex items-center gap-3">
             <DarkModeToggle v-model="darkMode" @toggle="toggleDarkMode" />
 
             <!-- Website link -->
             <router-link
               to="/"
               class="p-2 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded-lg transition"
-              title="Lihat Peta Magang Publik"
+              title="Landing Page"
             >
-              <i class="fas fa-globe text-base"></i>
+              <i class="fas fa-home text-base"></i>
+            </router-link>
+
+            <router-link
+              to="/docs"
+              class="p-2 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded-lg transition"
+              title="Dokumentasi Sistem"
+            >
+              <i class="fas fa-book-open text-base"></i>
             </router-link>
 
             <!-- Settings Dropdown -->
@@ -214,8 +222,11 @@ onMounted(async () => {
               Ajukan Tempat Baru
             </ResponsiveNavLink>
           </template>
-          <ResponsiveNavLink to="/">
+          <ResponsiveNavLink to="/map">
             Peta Lokasi Magang
+          </ResponsiveNavLink>
+          <ResponsiveNavLink to="/docs">
+            Dokumentasi Sistem
           </ResponsiveNavLink>
         </div>
 
