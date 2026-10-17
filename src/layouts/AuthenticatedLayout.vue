@@ -68,17 +68,20 @@ onMounted(async () => {
         <div class="flex h-16 justify-between items-center">
           <div class="flex items-center gap-8">
             <!-- Logo -->
-            <router-link to="/admin/dashboard" class="flex shrink-0 items-center">
+            <router-link :to="authStore.user?.role === 'admin' ? '/admin/dashboard' : '/user/dashboard'" class="flex shrink-0 items-center">
               <ApplicationLogo />
             </router-link>
 
-            <!-- Navigation Links -->
-            <div class="hidden md:flex space-x-6">
+            <!-- Navigation Links for Admin -->
+            <div v-if="authStore.user?.role === 'admin'" class="hidden md:flex space-x-6">
               <NavLink to="/admin/dashboard">
                 <i class="fas fa-chart-pie mr-1.5 text-xs"></i> Dashboard
               </NavLink>
               <NavLink to="/admin/locations">
                 <i class="fas fa-map-location-dot mr-1.5 text-xs"></i> Lokasi
+              </NavLink>
+              <NavLink to="/admin/reports">
+                <i class="fas fa-file-circle-check mr-1.5 text-xs"></i> Laporan Magang
               </NavLink>
               <NavLink to="/admin/categories">
                 <i class="fas fa-tags mr-1.5 text-xs"></i> Kategori
@@ -90,6 +93,19 @@ onMounted(async () => {
                 <i class="fas fa-graduation-cap mr-1.5 text-xs"></i> Jurusan
               </NavLink>
             </div>
+
+            <!-- Navigation Links for Mahasiswa / User Biasa -->
+            <div v-else class="hidden md:flex space-x-6">
+              <NavLink to="/user/dashboard">
+                <i class="fas fa-file-lines mr-1.5 text-xs"></i> Laporan Magang Saya
+              </NavLink>
+              <NavLink to="/">
+                <i class="fas fa-map-marked-alt mr-1.5 text-xs"></i> Peta Lokasi
+              </NavLink>
+              <NavLink to="/locations/add">
+                <i class="fas fa-plus-circle mr-1.5 text-xs"></i> Ajukan Tempat Baru
+              </NavLink>
+            </div>
           </div>
 
           <!-- Right side: Dark Mode & User Profile -->
@@ -99,9 +115,8 @@ onMounted(async () => {
             <!-- Website link -->
             <router-link
               to="/"
-              target="_blank"
               class="p-2 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded-lg transition"
-              title="Lihat Website Publik"
+              title="Lihat Peta Magang Publik"
             >
               <i class="fas fa-globe text-base"></i>
             </router-link>
@@ -114,10 +129,13 @@ onMounted(async () => {
                   class="inline-flex items-center gap-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 py-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 focus:outline-none transition"
                 >
                   <div class="w-7 h-7 rounded-lg bg-primary text-neutral-900 flex items-center justify-center font-bold text-xs">
-                    {{ authStore.user?.username?.charAt(0).toUpperCase() || 'A' }}
+                    {{ (authStore.user?.name || authStore.user?.username || 'U').charAt(0).toUpperCase() }}
                   </div>
-                  <span>{{ authStore.user?.username || 'Administrator' }}</span>
-                  <i class="fas fa-chevron-down text-xs text-neutral-400"></i>
+                  <div class="flex flex-col text-left">
+                    <span class="text-xs font-bold leading-tight">{{ authStore.user?.name || authStore.user?.username }}</span>
+                    <span class="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">{{ authStore.user?.role === 'admin' ? 'Admin' : 'Mahasiswa' }}</span>
+                  </div>
+                  <i class="fas fa-chevron-down text-xs text-neutral-400 ml-1"></i>
                 </button>
               </template>
 
@@ -125,11 +143,21 @@ onMounted(async () => {
                 <div class="px-4 py-2 text-xs border-b border-neutral-100 dark:border-neutral-700 text-neutral-400">
                   Signed in as <b class="text-neutral-800 dark:text-neutral-200">{{ authStore.user?.username }}</b>
                 </div>
-                <DropdownLink to="/admin/profile">
-                  <i class="fas fa-gear text-neutral-400 w-4"></i> Pengaturan Website
-                </DropdownLink>
-                <DropdownLink to="/" target="_blank">
-                  <i class="fas fa-external-link-alt text-neutral-400 w-4"></i> Beranda Publik
+                <template v-if="authStore.user?.role === 'admin'">
+                  <DropdownLink to="/admin/profile">
+                    <i class="fas fa-gear text-neutral-400 w-4"></i> Pengaturan Website
+                  </DropdownLink>
+                  <DropdownLink to="/admin/reports">
+                    <i class="fas fa-file-circle-check text-neutral-400 w-4"></i> Verifikasi Laporan
+                  </DropdownLink>
+                </template>
+                <template v-else>
+                  <DropdownLink to="/user/dashboard">
+                    <i class="fas fa-file-lines text-neutral-400 w-4"></i> Laporan Magang Saya
+                  </DropdownLink>
+                </template>
+                <DropdownLink to="/">
+                  <i class="fas fa-map text-neutral-400 w-4"></i> Peta Lokasi Magang
                 </DropdownLink>
                 <div class="border-t border-neutral-100 dark:border-neutral-700 my-1"></div>
                 <DropdownLink as="button" @click="handleLogout" class="text-red-600 dark:text-red-400">
@@ -155,33 +183,46 @@ onMounted(async () => {
       <!-- Responsive Navigation Menu -->
       <div v-show="showingNavigationDropdown" class="md:hidden border-t border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pb-3">
         <div class="space-y-1 pt-2">
-          <ResponsiveNavLink to="/admin/dashboard">
-            Dashboard
-          </ResponsiveNavLink>
-          <ResponsiveNavLink to="/admin/locations">
-            Lokasi Magang
-          </ResponsiveNavLink>
-          <ResponsiveNavLink to="/admin/categories">
-            Kategori
-          </ResponsiveNavLink>
-          <ResponsiveNavLink to="/admin/faculties">
-            Fakultas
-          </ResponsiveNavLink>
-          <ResponsiveNavLink to="/admin/departments">
-            Jurusan
-          </ResponsiveNavLink>
-          <ResponsiveNavLink to="/admin/profile">
-            Pengaturan Profil
-          </ResponsiveNavLink>
+          <template v-if="authStore.user?.role === 'admin'">
+            <ResponsiveNavLink to="/admin/dashboard">
+              Dashboard
+            </ResponsiveNavLink>
+            <ResponsiveNavLink to="/admin/locations">
+              Lokasi Magang
+            </ResponsiveNavLink>
+            <ResponsiveNavLink to="/admin/reports">
+              Laporan Magang
+            </ResponsiveNavLink>
+            <ResponsiveNavLink to="/admin/categories">
+              Kategori
+            </ResponsiveNavLink>
+            <ResponsiveNavLink to="/admin/faculties">
+              Fakultas
+            </ResponsiveNavLink>
+            <ResponsiveNavLink to="/admin/departments">
+              Jurusan
+            </ResponsiveNavLink>
+            <ResponsiveNavLink to="/admin/profile">
+              Pengaturan Profil
+            </ResponsiveNavLink>
+          </template>
+          <template v-else>
+            <ResponsiveNavLink to="/user/dashboard">
+              Laporan Magang Saya
+            </ResponsiveNavLink>
+            <ResponsiveNavLink to="/locations/add">
+              Ajukan Tempat Baru
+            </ResponsiveNavLink>
+          </template>
           <ResponsiveNavLink to="/">
-            Beranda Publik
+            Peta Lokasi Magang
           </ResponsiveNavLink>
         </div>
 
         <!-- Responsive User Info -->
         <div class="border-t border-neutral-200 dark:border-neutral-700 pt-4 pb-1 px-4">
           <div class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-            {{ authStore.user?.username || 'Administrator' }}
+            {{ authStore.user?.name || authStore.user?.username || 'Pengguna' }} ({{ authStore.user?.role === 'admin' ? 'Admin' : 'Mahasiswa' }})
           </div>
           <button
             type="button"

@@ -4,10 +4,12 @@ import { useRouter } from 'vue-router'
 import DarkModeToggle from '../components/DarkModeToggle.vue'
 import MapComponent from '../components/Map.vue'
 import ApplicationLogo from '../components/ApplicationLogo.vue'
-import api, { getImageUrl } from '../api'
+import api, { getImageUrl, getFileUrl } from '../api'
 import { useProfileStore } from '../stores/profile'
+import { useAuthStore } from '../stores/auth'
 
 const profileStore = useProfileStore()
+const authStore = useAuthStore()
 const router = useRouter()
 
 // Data state
@@ -571,28 +573,92 @@ watch(selectedLocation, (newLocation) => {
               </button>
             </div>
 
-            <!-- Meta details -->
-            <div class="pt-3 border-t border-neutral-100 dark:border-neutral-700 text-[11px] text-neutral-400 space-y-1">
-              <div v-if="selectedLocation.student_name">
-                Pengaju: <span class="text-neutral-700 dark:text-neutral-300 font-medium">{{ selectedLocation.student_name }}</span>
-                <span v-if="selectedLocation.nim"> ({{ selectedLocation.nim }})</span>
+            <!-- Laporan Magang Terverifikasi (Referensi PKL untuk Adik Tingkat) -->
+            <div class="pt-4 border-t border-neutral-100 dark:border-neutral-700 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
+                  <i class="fas fa-book-bookmark text-amber-500"></i>
+                  <span>Laporan Magang Terverifikasi</span>
+                </h4>
+                <span
+                  v-if="selectedLocation.reports && selectedLocation.reports.length > 0"
+                  class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+                >
+                  {{ selectedLocation.reports.length }} Pedoman
+                </span>
               </div>
-              <div v-if="selectedLocation.createdAt || selectedLocation.created_at">
-                Diajukan pada: {{ formatDate(selectedLocation.createdAt || selectedLocation.created_at) }}
+
+              <!-- List of reports -->
+              <div v-if="selectedLocation.reports && selectedLocation.reports.length > 0" class="space-y-2">
+                <div
+                  v-for="rep in selectedLocation.reports"
+                  :key="rep.id_report"
+                  class="p-3 rounded-2xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700 space-y-2 shadow-2xs"
+                >
+                  <div class="flex items-start gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center text-sm shrink-0 mt-0.5">
+                      <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <h5 class="text-xs font-bold text-neutral-900 dark:text-white leading-snug line-clamp-2">
+                        {{ rep.title }}
+                      </h5>
+                      <p v-if="rep.students" class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2">
+                        <i class="fas fa-users text-[10px] text-amber-500 mr-1"></i>
+                        {{ rep.students.split('\n')[0] }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    :href="getFileUrl(rep.file_path)"
+                    target="_blank"
+                    class="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl font-bold text-xs bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-800 transition"
+                  >
+                    <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                    <span>Baca Laporan PDF (Referensi)</span>
+                  </a>
+                </div>
+              </div>
+
+              <div v-else class="p-3 rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-100 dark:border-neutral-700/60 text-center">
+                <p class="text-[11px] text-neutral-400">
+                  Belum ada berkas laporan terverifikasi untuk tempat magang ini.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Footer / Dark Mode & Admin Login -->
-      <div id="sidebar-footer" class="p-3.5 border-t border-neutral-100 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50 flex items-center justify-between shrink-0">
-        <router-link
-          to="/login"
-          class="text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1.5 transition"
-        >
-          <i class="fas fa-lock text-[11px]"></i> Admin Portal
-        </router-link>
+      <!-- Footer / Dark Mode & User / Admin Portal -->
+      <div id="sidebar-footer" class="p-3.5 border-t border-neutral-100 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50 flex items-center justify-between gap-2 shrink-0">
+        <template v-if="authStore.isAuthenticated">
+          <router-link
+            :to="authStore.user?.role === 'admin' ? '/admin/dashboard' : '/user/dashboard'"
+            class="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 flex items-center gap-1.5 transition truncate max-w-[170px]"
+          >
+            <i class="fas" :class="authStore.user?.role === 'admin' ? 'fa-chart-pie' : 'fa-user-graduate'"></i>
+            <span class="truncate">{{ authStore.user?.role === 'admin' ? 'Admin Dashboard' : 'Dashboard Saya' }}</span>
+          </router-link>
+        </template>
+        <template v-else>
+          <div class="flex items-center gap-2">
+            <router-link
+              to="/login"
+              class="text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1 transition"
+            >
+              <i class="fas fa-right-to-bracket text-[11px]"></i> Masuk
+            </router-link>
+            <span class="text-neutral-300 dark:text-neutral-600">|</span>
+            <router-link
+              to="/register"
+              class="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 transition"
+            >
+              Daftar Mahasiswa
+            </router-link>
+          </div>
+        </template>
 
         <DarkModeToggle v-model="darkMode" @toggle="toggleDarkMode" />
       </div>

@@ -161,6 +161,12 @@ onMounted(() => {
         </div>
 
         <div class="flex items-center gap-2.5">
+          <router-link
+            to="/admin/reports"
+            class="px-3.5 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2 transition"
+          >
+            <i class="fas fa-file-circle-check text-amber-600 dark:text-amber-400"></i> Verifikasi Laporan
+          </router-link>
           <button
             @click="showQrModal = true"
             class="px-3.5 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2 transition"

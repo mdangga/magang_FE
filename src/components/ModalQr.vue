@@ -118,7 +118,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import QRCode from 'qrcode'
-import api from '../api'
+import api, { getAppUrl } from '../api'
 
 const props = defineProps({
   show: {
@@ -179,8 +179,23 @@ const generateQRCode = async () => {
   error.value = null
 
   try {
-    const res = await api.post(props.apiUrl)
-    const link = res.data?.link || `${window.location.origin}/locations/add`
+    const appOrigin = getAppUrl()
+    const res = await api.post(props.apiUrl, { app_url: appOrigin })
+    let link = res.data?.link
+
+    // Normalisasi origin jika backend mengembalikan localhost tetapi appOrigin berbeda
+    if (link && appOrigin) {
+      try {
+        const urlObj = new URL(link)
+        const targetOrigin = new URL(appOrigin).origin
+        link = `${targetOrigin}${urlObj.pathname}${urlObj.search}${urlObj.hash}`
+      } catch (e) {
+        // biarkan link apa adanya jika bukan full URL
+      }
+    }
+    if (!link) {
+      link = `${appOrigin}/locations/add`
+    }
 
     const qrCode = await QRCode.toDataURL(link, {
       width: 250,
@@ -200,7 +215,8 @@ const generateQRCode = async () => {
   } catch (err) {
     console.error('Error generating QR:', err)
     // Fallback if backend generate-link endpoint fails
-    const fallbackLink = `${window.location.origin}/locations/add`
+    const appOrigin = getAppUrl()
+    const fallbackLink = `${appOrigin}/locations/add`
     const qrCode = await QRCode.toDataURL(fallbackLink, {
       width: 250,
       margin: 2,

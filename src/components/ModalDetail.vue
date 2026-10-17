@@ -1,5 +1,5 @@
 <script setup>
-import { getImageUrl } from '../api'
+import { getImageUrl, getFileUrl } from '../api'
 
 const props = defineProps({
   show: {
@@ -206,6 +206,43 @@ const approve = (id) => {
                   class="mt-2 inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm"
                 >
                   <i class="fas fa-map-location-dot"></i> Buka di Google Maps
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Laporan Magang Terverifikasi (Pedoman / Referensi Adik Tingkat) -->
+          <div v-if="location.reports && location.reports.length > 0" class="bg-neutral-50 dark:bg-neutral-900/40 rounded-2xl p-5 border border-neutral-100 dark:border-neutral-700 space-y-3">
+            <h4 class="text-sm font-bold text-neutral-900 dark:text-white flex items-center justify-between pb-2 border-b border-neutral-200 dark:border-neutral-700">
+              <span class="flex items-center gap-2">
+                <i class="fas fa-book-bookmark text-amber-500"></i>
+                Laporan Magang Terverifikasi (Pedoman Adik Tingkat)
+              </span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                {{ location.reports.length }} Dokumen Tersedia
+              </span>
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div v-for="rep in location.reports" :key="rep.id_report" class="p-3.5 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 space-y-2.5 shadow-xs">
+                <div class="flex items-start gap-2.5">
+                  <div class="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center text-sm shrink-0 mt-0.5">
+                    <i class="fas fa-file-pdf"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-xs font-bold text-neutral-900 dark:text-white line-clamp-2 leading-snug">{{ rep.title }}</p>
+                    <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-1">
+                      <i class="fas fa-users text-[10px] text-amber-500 mr-1"></i>
+                      {{ rep.students?.split('\n')[0] }}
+                    </p>
+                  </div>
+                </div>
+                <a
+                  :href="getFileUrl(rep.file_path)"
+                  target="_blank"
+                  class="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40 transition"
+                >
+                  <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                  <span>Baca Dokumen PDF (Referensi)</span>
                 </a>
               </div>
             </div>
