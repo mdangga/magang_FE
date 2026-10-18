@@ -82,3 +82,30 @@ body {
   white-space: normal !important;
   line-height: 1.4 !important;
 }
+
+
+.faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 350ms ease,
+    opacity 250ms ease;
+}
+
+.faq-answer-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.faq-item[open] .faq-answer {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-answer,
+  .faq-item iconify-icon {
+    transition: none;
+  }
+}
