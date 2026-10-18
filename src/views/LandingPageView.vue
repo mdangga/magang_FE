@@ -67,10 +67,6 @@ onMounted(() => {
         <!-- Badge -->
         <div
           class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-neutral-200/80 shadow-xs mb-8">
-          <span class="flex h-2.5 w-2.5 relative">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-600"></span>
-          </span>
           <span class="text-xs font-bold text-neutral-800 tracking-wide uppercase">Sistem Informasi Geografis PKL &amp;
             Magang Mahasiswa</span>
         </div>

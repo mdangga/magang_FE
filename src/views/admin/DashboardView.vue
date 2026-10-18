@@ -281,7 +281,7 @@ onMounted(() => {
               <i class="fas fa-map-location-dot text-amber-500"></i>
               Persebaran Lokasi Aktif
             </h3>
-            <router-link to="/" target="_blank" class="text-xs text-primary font-bold hover:underline flex items-center gap-1">
+            <router-link to="/map" target="_blank" class="text-xs text-primary font-bold hover:underline flex items-center gap-1">
               Buka Peta Full <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
             </router-link>
           </div>

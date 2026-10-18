@@ -14,6 +14,8 @@ const name = ref('')
 const username = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
+const showPassword = ref(false)
+const showPasswordConfirm = ref(false)
 const error = ref('')
 const loading = ref(false)
 
@@ -22,6 +24,12 @@ const handleRegister = async () => {
 
   if (!username.value || !password.value || !name.value) {
     error.value = 'Harap isi semua kolom formulir.'
+    toast.error(error.value)
+    return
+  }
+
+  if (!/^\d{10}$/.test(username.value)) {
+    error.value = 'NIM harus terdiri dari tepat 10 angka.'
     toast.error(error.value)
     return
   }
@@ -111,8 +119,13 @@ const handleRegister = async () => {
                 v-model="username"
                 type="text"
                 required
+                inputmode="numeric"
+                minlength="10"
+                maxlength="10"
+                pattern="[0-9]{10}"
+                title="NIM harus terdiri dari tepat 10 angka."
                 class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary text-sm transition"
-                placeholder="NIM atau username unik"
+                placeholder="NIM Anda"
               />
             </div>
           </div>
@@ -127,12 +140,21 @@ const handleRegister = async () => {
               </span>
               <input
                 v-model="password"
-                type="password"
+                :type="showPassword ? 'text' : 'password'"
                 required
                 minlength="6"
-                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary text-sm transition"
+                class="w-full pl-10 pr-11 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary text-sm transition"
                 placeholder="Minimal 6 karakter"
               />
+              <button
+                type="button"
+                :aria-label="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
+                :aria-pressed="showPassword"
+                class="absolute inset-y-0 right-0 flex items-center px-3.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-r-xl"
+                @click="showPassword = !showPassword"
+              >
+                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" aria-hidden="true"></i>
+              </button>
             </div>
           </div>
 
@@ -146,12 +168,21 @@ const handleRegister = async () => {
               </span>
               <input
                 v-model="passwordConfirm"
-                type="password"
+                :type="showPasswordConfirm ? 'text' : 'password'"
                 required
                 minlength="6"
-                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary text-sm transition"
+                class="w-full pl-10 pr-11 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700/50 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary text-sm transition"
                 placeholder="Ketik ulang password"
               />
+              <button
+                type="button"
+                :aria-label="showPasswordConfirm ? 'Sembunyikan password' : 'Tampilkan password'"
+                :aria-pressed="showPasswordConfirm"
+                class="absolute inset-y-0 right-0 flex items-center px-3.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-r-xl"
+                @click="showPasswordConfirm = !showPasswordConfirm"
+              >
+                <i :class="showPasswordConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'" aria-hidden="true"></i>
+              </button>
             </div>
           </div>
 

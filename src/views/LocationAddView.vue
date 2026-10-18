@@ -184,7 +184,7 @@ const submit = async () => {
       <div class="flex items-center gap-3">
         <DarkModeToggle v-model="darkMode" @toggle="toggleDarkMode" />
         <router-link
-          to="/"
+          to="/map"
           class="px-3.5 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 transition flex items-center gap-1.5 shadow-xs"
         >
           <i class="fas fa-arrow-left"></i> Kembali ke Peta
